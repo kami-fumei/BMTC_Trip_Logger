@@ -1,4 +1,6 @@
 // import 'package:flutter/material.dart';
+import 'dart:developer';
+
 import '../services/db.dart';
 import '../services/model.dart';
 
@@ -26,6 +28,7 @@ Future<int> insertTripWithFields( {
       photos: photos,
       videos: videos,
     );
+    log("insett ${trip.videos}");
     final id = await dbHelper.insertTrip(trip);
     return id;
   }

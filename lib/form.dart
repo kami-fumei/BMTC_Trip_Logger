@@ -1,3 +1,4 @@
+// ignore: unused_import
 import 'dart:developer';
 import 'dart:io';
 import 'package:flutter/material.dart';
@@ -123,7 +124,10 @@ class _AddTripFormState extends State<AddTripForm> {
 
   void _handleSubmit() async {
     if (_formKey.currentState?.validate() ?? false) {
+
       try {
+        log("car is  ${_videos.map((vid) => vid.path).toList()}");
+
         await insertTripWithFields(
           busNumber: _busNumberController.text.trim(),
           source: _sourceController.text.trim(),
@@ -132,14 +136,14 @@ class _AddTripFormState extends State<AddTripForm> {
           dateTime: _selectedDateTime,
           noteTitle: _noteTitleController.text.trim(),
           noteBody: _noteBodyController.text.trim(),
-          photos: _images.map((img) => img.path).toList(),
-          videos: _videos.map((vid) => vid.path).toList(),
+          photos: _images.isNotEmpty? _images.map((img) => img.path).toList():null,
+          videos: _videos.isNotEmpty? _videos.map((vid) => vid.path).toList():null,
         );
 
         var busno = _busNumberController.text.trim();
         Navigator.pop(context, busno);
 
-        showSuccessBox(context, "Successfully added ");
+        showSuccessBox(context,"Successfully added ");
       } catch (e) {
         dialogBox(context, "Failed", Colors.red, "$e");
       }

@@ -1,9 +1,9 @@
 // ignore: unused_import
-// import 'dart:developer';
+import 'dart:developer';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:trip_logger/imge/image_video_open.dart';
+import 'package:trip_logger/widgets/image_video_open.dart';
 import 'package:trip_logger/services/db.dart';
 import 'package:trip_logger/services/model.dart';
 
@@ -43,10 +43,13 @@ class _SingleTripScreenState extends State<SingleTripScreen> {
             return const Center(child: Text('Trip not found'));
           }
           final trip = trips[0];
-          
+
+          // log("${trip.photos?[0]}  ${trip.videos}");
+
           final dateStr = DateFormat(
             'h:mma dd/MM/yy',
           ).format(DateTime.parse(trip.dateTime));
+
           return SingleChildScrollView(
             padding: const EdgeInsets.all(16.0),
             child: Card(
@@ -136,34 +139,37 @@ class _SingleTripScreenState extends State<SingleTripScreen> {
                       scrollDirection: Axis.horizontal,
                       itemCount: trip.photos!.length,
                       itemBuilder: (ctx, i) {
-                        try {
-                          return Padding(
-                            padding: const EdgeInsets.only(right: 8.0),
-                            child: GestureDetector(
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => FullImageViewer(
-                                      imagePaths: trip.photos!,
-                                      initialIndex: i,
-                                    ),
+                        final file = File(trip.photos![i]);
+                        if (!file.existsSync()) {
+                          return Container(
+                            alignment: Alignment.center,
+                            child: const Text("File not found\nIt appears to be you Deleted File from the cash", style: TextStyle(color: Colors.red,fontSize: 16)),
+                          );
+                        }
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 8.0),
+                          child: GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => FullImageViewer(
+                                    imagePaths: trip.photos!,
+                                    initialIndex: i,
                                   ),
-                                );
-                              },
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(8),
-                                child: Image.file(
-                                  File(trip.photos![i]),
-                                  width: 100,
-                                  fit: BoxFit.cover,
                                 ),
+                              );
+                            },
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: Image.file(
+                                file,
+                                width: 100,
+                                fit: BoxFit.cover,
                               ),
                             ),
-                          );
-                        } catch (e) {
-                          return Container(child: Text("ss"),);
-                        }
+                          ),
+                        );
                       },
                     ),
                   ),

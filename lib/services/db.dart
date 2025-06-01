@@ -33,6 +33,7 @@ class DatabaseHelper {
   static Database? _db;
 
   Future<Database> get database async {
+
     if (_db != null) return _db!;
     _db = await _initDb();
     return _db!;
@@ -46,7 +47,7 @@ class DatabaseHelper {
       path,
       version: 3,
       onCreate: _onCreate,
-      onUpgrade: _onUpgrade,
+      // onUpgrade: _onUpgrade,
     );
   }
 
@@ -67,13 +68,7 @@ class DatabaseHelper {
          $colVideos TEXT
       )
     ''');
-  }
-
-  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
-
-  if (oldVersion < newVersion) {
-    // Create search_history table if it doesn't exist
-    await db.execute('''
+        await db.execute('''
       CREATE TABLE IF NOT EXISTS $tableSearchHistory (
         $colHistoryId INTEGER PRIMARY KEY AUTOINCREMENT,
         $colHistoryQuery TEXT NOT NULL,
@@ -81,7 +76,20 @@ class DatabaseHelper {
       )
     ''');
   }
-}
+
+//   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+
+  
+//     // Create search_history table if it doesn't exist
+    // await db.execute('''
+    //   CREATE TABLE IF NOT EXISTS $tableSearchHistory (
+    //     $colHistoryId INTEGER PRIMARY KEY AUTOINCREMENT,
+    //     $colHistoryQuery TEXT NOT NULL,
+    //     $colHistoryTimestamp INTEGER NOT NULL
+    //   )
+    // ''');
+  
+// }
 
   // CRUD Operations
 
@@ -91,7 +99,7 @@ class DatabaseHelper {
     return await db.insert(
       tableTrips,
       trip.toMap(),
-      // conflictAlgorithm: ConflictAlgorithm.replace,
+      conflictAlgorithm: ConflictAlgorithm.replace,
     );
   }
 
@@ -287,7 +295,7 @@ if(field==SearchField.date)
   Future<void> addSearchHistory(String query) async {
     final db = await database;
     // Remove duplicate
-    // await db.delete(tableSearchHistory, where: '$colHistoryQuery = ?', whereArgs: [query]);
+    await db.delete(tableSearchHistory, where: '$colHistoryQuery = ?', whereArgs: [query]);
     await db.insert(tableSearchHistory, {
       colHistoryQuery: query,
       colHistoryTimestamp: DateTime.now().millisecondsSinceEpoch,
@@ -319,6 +327,7 @@ if(field==SearchField.date)
     final db = await database;
     await db.delete(tableSearchHistory);
   }
+
 //   Future<void> ensureSearchHistoryTable() async {
 //   final db = await database;
 //   await db.execute('''
