@@ -1,6 +1,7 @@
 // ignore: unused_import
 import 'dart:developer';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:trip_logger/buslist.dart';
 import './services/db.dart';
 
@@ -24,12 +25,12 @@ class _SearchPageState extends State<SearchPage> {
   bool _showHistory = true;
 
   Future _fetchResults() async {
-    var r = await dbHelper.getFilteredSearchFieldValues(
+
+    var r =  await dbHelper.getFilteredSearchFieldValues(
       query: _query,
       field: _selectedField,
       date: _pickedDate,
     );
-    log("$r");
     return r;
   }
 
@@ -255,16 +256,11 @@ class _SearchPageState extends State<SearchPage> {
                       ],
                     )
                     : FutureBuilder(
-                      future:
-                          (_query.isEmpty && _selectedField != SearchField.date)
+                      future: (_query.isEmpty && _selectedField != SearchField.date)
                               ? Future.value([])
                               : _fetchResults(),
                       builder: (context, snapshot) {
-                        if (_query.isEmpty &&
-                            _selectedField != SearchField.date) {
-                          // Show nothing at the start
-                          return SizedBox.shrink();
-                        }
+                      
                         if (snapshot.connectionState ==
                             ConnectionState.waiting) {
                           return Center(child: CircularProgressIndicator());
@@ -289,48 +285,6 @@ class _SearchPageState extends State<SearchPage> {
                                 ))) {
                           return Center(child: Text('No results found.'));
                         }
-
-                        // Group by route_name, bus_number, date, and bus_stop
-
-                        /*  for (var item in data) {
-                          // If you want to lowercase all string values in the map, you could do:
-
-                           var lowerItem = item.toMap();
-                           lowerItem =lowerItem.map((key,value)=>MapEntry(key, value.toString().toLowerCase()));
-                          final route = lowerItem['route_name'] ?? '';
-                          final busNo = lowerItem['bus_number'] ?? '';
-                          final dateStr =lowerItem['date_time'] ?? '';
-                          final source = lowerItem['source'] ?? '';
-                          final destination = lowerItem['destination'] ?? '';
-
-                           
-
-                          final q = _query.toLowerCase();
-                          // Group by route
-                          if (route.contains(q)&&route.isNotEmpty) {
-                            routes.add(item.routeName.toString());
-                          }
-                          // Group by bus number
-                          if (busNo.contains(q)&&busNo.isNotEmpty) {
-                            busNumbers.add(item.busNumber);
-                          }
-                          // Group by date (show only date part)
-                          if (dateStr.isNotEmpty) {
-                            var fixedDate = DateTime.parse(dateStr.replaceFirst('t', 'T'));
-                            var time = DateFormat(
-                              'dd/MM/yy',
-                            ).format(fixedDate);
-                            dates.add(time);
-                            dates.add([fixedDate]);
-                          }
-                          // Group by bus stop (source and destination)
-                          if (source.isNotEmpty&&source.contains(q)) {
-                            busStops.add(item.source);
-                          }
-                          if (destination.isNotEmpty&& destination.contains(q)) {
-                            busStops.add(item.destination);
-                          }
-                        }*/
 
                         List<Widget> sections = [];
 
@@ -444,47 +398,47 @@ class _SearchPageState extends State<SearchPage> {
                         }
 
                         // Dates Section
-                        if (_selectedField == SearchField.date &&
-                            data['date'].isNotEmpty) {
-                          sections.add(
-                            sectionHeader('Dates', Icons.calendar_today),
-                          );
+                        // if (_selectedField == SearchField.date &&
+                        //     data['date'].isNotEmpty) {
+                        //   sections.add(
+                        //     sectionHeader('Dates', Icons.calendar_today),
+                        //   );
 
-                          data['date'].forEach((date) {
-                            sections.add(
-                              GestureDetector(
-                                onTap:
-                                    () => Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder:
-                                            (_) => Buslist(
-                                              date: DateTime.parse(date),
-                                            ),
-                                      ),
-                                    ),
-                                child: Card(
-                                  margin: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                    vertical: 4,
-                                  ),
-                                  child: ListTile(
-                                    leading: Icon(
-                                      Icons.event,
-                                      color: Colors.deepPurple,
-                                    ),
-                                    title: Text(
-                                      date.toString(),
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            );
-                          });
-                        }
+                        //   data['date'].forEach((date) {
+                        //     sections.add(
+                        //       GestureDetector(
+                        //         onTap:
+                        //             () => Navigator.push(
+                        //               context,
+                        //               MaterialPageRoute(
+                        //                 builder:
+                        //                     (_) => Buslist(
+                        //                       date: DateTime.parse(date),
+                        //                     ),
+                        //               ),
+                        //             ),
+                        //         child: Card(
+                        //           margin: const EdgeInsets.symmetric(
+                        //             horizontal: 12,
+                        //             vertical: 4,
+                        //           ),
+                        //           child: ListTile(
+                        //             leading: Icon(
+                        //               Icons.event,
+                        //               color: Colors.deepPurple,
+                        //             ),
+                        //             title: Text(
+                        //               date.toString(),
+                        //               style: TextStyle(
+                        //                 fontWeight: FontWeight.bold,
+                        //               ),
+                        //             ),
+                        //           ),
+                        //         ),
+                        //       ),
+                        //     );
+                        //   });
+                        // }
 
                         // Bus Stops Section
                         if ((_selectedField == SearchField.busStop ||
