@@ -20,7 +20,7 @@ A Flutter app to log and manage bus trips with QR scanning, media notes (photos/
 ---
 
 ## 📂 Folder Structure
-
+```
 
 lib/
 ├── main.dart                  # App entry point
