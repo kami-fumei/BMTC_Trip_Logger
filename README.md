@@ -18,7 +18,7 @@ A Flutter app to log and manage bus trips with QR scanning, media notes (photos/
 - 🎞️ Watch recorded trip videos with an in-app player.
 
 
-```
+
 ## 🛠️ Getting Started
 
 ### Prerequisites
