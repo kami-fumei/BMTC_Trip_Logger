@@ -25,12 +25,12 @@ void showSuccessBox(BuildContext context, String msg) {
       children: [
         Icon(Icons.check_circle, color: Colors.green),
         SizedBox(width: 10),
-        Text('Successfully  $msg'),
+        Text('Successfully $msg',style: TextStyle(fontSize: 16),),
       ],
     ),
     backgroundColor: Colors.black87,
     behavior: SnackBarBehavior.floating,
-    duration: Duration(seconds: 2),
+    duration: Duration(seconds: 3),
     margin: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
   );
@@ -52,7 +52,7 @@ final shouldDelete = await  showDialog<bool>(
           child: const Text('Cancel'),
         ),
         ElevatedButton(
-          style: ElevatedButton.styleFrom(backgroundColor: const Color.fromARGB(255, 238, 114, 105)),
+          style: ElevatedButton.styleFrom(backgroundColor: const Color.fromARGB(255, 241, 95, 84)),
           onPressed: () => Navigator.of(ctx).pop(true),
           child: const Text('Delete',style:TextStyle(color: Colors.white) ,),
         ),
@@ -68,7 +68,7 @@ final shouldDelete = await  showDialog<bool>(
 /// Displays a custom, beautiful dialog showing previous travels for a bus.
 
 
-// Future<void> showBeautifulTravelDialog2(
+// Future<void> showBeautifulTravelDialog(
 
 //   BuildContext context,
 //   String busNumber,
@@ -200,7 +200,6 @@ final shouldDelete = await  showDialog<bool>(
 /// [busNumber]: the bus number that was scanned.
 /// [summary]: list of maps with keys 'route_name' and 'total_travels'.
 
-/// 
 Future<void> showAlreadyTraveledDialog(
   BuildContext context,
   String busNumber,

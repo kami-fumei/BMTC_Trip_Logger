@@ -1,122 +1,207 @@
-// lib/screens/bus_detail_screen.dart
-
+// ignore: unused_import
+// import 'dart:developer';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:trip_logger/imge/image_video_open.dart';
 import 'package:trip_logger/services/db.dart';
 import 'package:trip_logger/services/model.dart';
-import 'package:trip_logger/utils/utils.dart';
 
-
-/// Screen to display all trips (notes, photos, videos) for a specific bus number.
-class BusDetailScreen extends StatefulWidget {
-  final String busNumber;
-
-  const BusDetailScreen({super.key, required this.busNumber});
+/// Screen to display details for a single Trip by its ID, using FutureBuilder.
+class SingleTripScreen extends StatefulWidget {
+  final int id;
+  const SingleTripScreen({Key? key, required this.id}) : super(key: key);
 
   @override
-  _BusDetailScreenState createState() => _BusDetailScreenState();
+  _SingleTripScreenState createState() => _SingleTripScreenState();
 }
 
-class _BusDetailScreenState extends State<BusDetailScreen> {
+class _SingleTripScreenState extends State<SingleTripScreen> {
   final DatabaseHelper _dbHelper = DatabaseHelper();
-  late Future<List<Trip>> _tripsFuture;
+  late var _tripFuture;
 
   @override
   void initState() {
     super.initState();
-    _loadTrips();
-  }
-
-  void _loadTrips() {
-    _tripsFuture = _dbHelper.getTripsByBusNumber(widget.busNumber);
+    _tripFuture = _dbHelper.getTripsById(widget.id);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Bus ${widget.busNumber} Trips'),
-        centerTitle: true,
-      ),
-      body: FutureBuilder<List<Trip>>(
-        future: _tripsFuture,
+      appBar: AppBar(title: const Text('Trip Details'), centerTitle: true),
+      body: FutureBuilder(
+        future: _tripFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: Text('Error: \ ${snapshot.error}'));
           }
-          if (snapshot.hasError) {
-            return Center(child: Text('Error: \${snapshot.error}'));
-          }
-          final trips = snapshot.data;
+          final trips = snapshot.data as List<Trip>?;
           if (trips == null || trips.isEmpty) {
-            return const Center(child: Text('No trips recorded'));
+            return const Center(child: Text('Trip not found'));
           }
-          return ListView.builder(
-            itemCount: trips.length,
-            itemBuilder: (context, index) {
-              final trip = trips[index];
-              return Card(
-                margin: const EdgeInsets.all(8),
-                child: ExpansionTile(
-                  title: Text(trip.noteTitle ?? 'No Title'),
-                  subtitle: Text(
-                    '${DateTime.parse(trip.dateTime).toLocal()}'.split('.').first,
-                  ),
+          final trip = trips[0];
+          
+          final dateStr = DateFormat(
+            'h:mma dd/MM/yy',
+          ).format(DateTime.parse(trip.dateTime));
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(16.0),
+            child: Card(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              elevation: 4,
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    if (trip.noteBody != null && trip.noteBody!.isNotEmpty)
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Text(trip.noteBody!),
+                    Text(
+                      'Bus: \ ${trip.busNumber}',
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
                       ),
-                    if (trip.photos != null && trip.photos!.isNotEmpty)
-                      SizedBox(
-                        height: 100,
-                        child: ListView.builder(
-                          scrollDirection: Axis.horizontal,
-                          itemCount: trip.photos!.length,
-                          itemBuilder: (ctx, i) {
-                            return Padding(
-                              padding: const EdgeInsets.all(4.0),
-                              child: Image.file(
-                                File(trip.photos![i]),
-                                width: 100,
-                                fit: BoxFit.cover,
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                    if (trip.videos != null && trip.videos is List && trip.videos!.isNotEmpty)
-                      Column(
-                        children: (trip.videos as List).map<Widget>((path) {
-                          return ListTile(
-                            leading: const Icon(Icons.videocam),
-                            title: Text(path.toString().split('/').last),
-                            onTap: () {
-                              // Optional: implement video player
-                            },
-                          );
-                        }).toList(),
-                      ),
-                    OverflowBar(
-                      children: [
-                        TextButton(
-                          onPressed: () async {
-                            final summary = await _dbHelper.previouslyTraveled(widget.busNumber);
-                            await showAlreadyTraveledDialog(
-                              context,
-                              widget.busNumber,
-                              summary,
-                            );
-                          },
-                          child: const Text('History'),
-                        ),
-                      ],
                     ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Route: \ ${trip.routeName}',
+                      style: const TextStyle(fontSize: 16),
+                    ),
+                    const Divider(height: 24),
+                    Text(
+                      'Date: \ $dateStr',
+                      style: const TextStyle(fontSize: 14, color: Colors.grey),
+                    ),
+                    const SizedBox(height: 16),
+                    if (trip.noteTitle!=null&&trip.noteTitle.toString().trim() != '') ...[
+                      Text(
+                        'Notes: ${trip.noteTitle!}',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                    if (trip.noteBody != null && trip.noteBody!.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      Text(trip.noteBody!),
+                      const SizedBox(height: 16),
+                    ],
+                    if ((trip.source.toString().trim() != '')&&(trip.source!=null) ) ...[
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            "From: ${trip.source}",
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontStyle: FontStyle.italic,
+                              color: Colors.teal[700],
+                            ),
+                          ),
+                          SizedBox(width: 4),
+                          Icon(
+                            Icons.arrow_forward_sharp,
+                            size: 20,
+                            color: Colors.teal[700],
+                          ),
+                          SizedBox(width: 4),
+                          Text(
+                            "To: ${trip.destination}",
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontStyle: FontStyle.italic,
+                              color: Colors.teal[700],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                if (trip.photos != null) ...[
+                  const Text(
+                    'Photos:',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    height: 100,
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: trip.photos!.length,
+                      itemBuilder: (ctx, i) {
+                        try {
+                          return Padding(
+                            padding: const EdgeInsets.only(right: 8.0),
+                            child: GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => FullImageViewer(
+                                      imagePaths: trip.photos!,
+                                      initialIndex: i,
+                                    ),
+                                  ),
+                                );
+                              },
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: Image.file(
+                                  File(trip.photos![i]),
+                                  width: 100,
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                            ),
+                          );
+                        } catch (e) {
+                          return Container(child: Text("ss"),);
+                        }
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 16),                    
+                  if (trip.videos != null  ) ...[
+                      const Text(
+                        'Videos:',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Column(
+                        children:
+                            trip.videos!.map((path) {
+                              return ListTile(
+                                leading: const Icon(Icons.videocam),
+                                title: Text(path.split('/').last),
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder:
+                                          (_) =>
+                                              FullVideoPlayer(videoPath: path),
+                                    ),
+                                  );
+                                },
+                              );
+                            }).toList(),
+                      ),
+                    ],
                   ],
+                  ]
                 ),
-              );
-            },
+              ),
+            ),
           );
         },
       ),

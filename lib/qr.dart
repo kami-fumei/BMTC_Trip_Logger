@@ -54,10 +54,10 @@ class _QRView extends State<QRview> {
           ),
           Positioned(
             bottom: 0,
-            left: 0,
+            left:  0,
             right: 0,
             child: Container(
-              color: Colors.black54,
+            color: Colors.black54,
               padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
               child: Column(
                 mainAxisSize: MainAxisSize.min,

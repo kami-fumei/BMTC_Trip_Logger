@@ -12,8 +12,8 @@ Future<int> insertTripWithFields( {
     String? destination,
     String? noteTitle,
     String? noteBody,
-    String? photos,
-    String? videos,
+    List<String>? photos,
+    List<String>? videos,
   }) async {
     final trip = Trip(
       busNumber: busNumber,
@@ -23,7 +23,7 @@ Future<int> insertTripWithFields( {
       dateTime: dateTime.toIso8601String(),
       noteTitle: noteTitle,
       noteBody: noteBody,
-      photos: photos ,
+      photos: photos,
       videos: videos,
     );
     final id = await dbHelper.insertTrip(trip);

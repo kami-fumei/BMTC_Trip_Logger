@@ -1,14 +1,14 @@
 class Trip {
   final int? id;
   final String busNumber;
-  final String routeName;
+  final String? routeName; 
+  final String dateTime;
   final String? source;
   final String? destination;
-  final String dateTime;
   final String? noteTitle;
   final String? noteBody;
-  final String? photos;
-  final String? videos;
+  final List<String>? photos;
+  final List<String>? videos;
 
   Trip({
     this.id,
@@ -33,8 +33,8 @@ class Trip {
       'date_time': dateTime,
       'note_title': noteTitle,
       'note_body': noteBody,
-      'photos': photos ,
-      'videos': videos ,
+      'photos':photos?.join(',') ,
+      'videos':videos?.join(',') ,
     };
   }
 
@@ -48,8 +48,8 @@ class Trip {
       dateTime: map['date_time'],
       noteTitle: map['note_title'],
       noteBody: map['note_body'],
-      photos: map['photos'],
-      videos: map['videos'],
+      photos: map['photos']?.toString().split(','),
+      videos: map['video']?.toString().split(','),
     );
   }
 }
