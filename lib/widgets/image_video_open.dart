@@ -3,6 +3,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
+import 'package:open_filex/open_filex.dart';
 
 /// Full-screen video player widget
 class FullVideoPlayer extends StatefulWidget {
@@ -27,10 +28,16 @@ class _FullVideoPlayerState extends State<FullVideoPlayer> {
         _controller.play();
         _isPlaying = true;
       });
+    _controller.addListener(_updateState);
+  }
+
+  void _updateState() {
+    if (mounted) setState(() {});
   }
 
   @override
   void dispose() {
+    _controller.removeListener(_updateState);
     _controller.dispose();
     super.dispose();
   }
@@ -49,6 +56,7 @@ class _FullVideoPlayerState extends State<FullVideoPlayer> {
                   )
                 : const CircularProgressIndicator(),
           ),
+          // Close button
           Positioned(
             top: 40,
             left: 16,
@@ -57,30 +65,67 @@ class _FullVideoPlayerState extends State<FullVideoPlayer> {
               onPressed: () => Navigator.of(context).pop(),
             ),
           ),
+          // 3-dots menu
+          Positioned(
+            top: 40,
+            right: 16,
+            child: PopupMenuButton<String>(
+              icon: const Icon(Icons.more_vert, color: Colors.white),
+              color: Colors.white,
+              onSelected: (value) async {
+                if (value == 'open_with') {
+                  await OpenFilex.open(widget.videoPath);
+                }
+              },
+              itemBuilder: (context) => [
+                const PopupMenuItem<String>(
+                  value: 'open_with',
+                  child: Text('Open with Photos app'),
+                ),
+              ],
+            ),
+          ),
+          // Play/Pause button and Seek bar
           Positioned(
             bottom: 40,
             left: 0,
             right: 0,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                IconButton(
-                  icon: Icon(
-                    _isPlaying ? Icons.pause : Icons.play_arrow,
-                    color: Colors.white,
-                    size: 32,
+                if (_controller.value.isInitialized)
+                  Slider(
+                    value: _controller.value.position.inMilliseconds.toDouble(),
+                    min: 0,
+                    max: _controller.value.duration.inMilliseconds.toDouble(),
+                    onChanged: (value) {
+                      _controller.seekTo(Duration(milliseconds: value.toInt()));
+                    },
+                    activeColor: Colors.white,
+                    inactiveColor: Colors.white38,
                   ),
-                  onPressed: () {
-                    setState(() {
-                      if (_controller.value.isPlaying) {
-                        _controller.pause();
-                        _isPlaying = false;
-                      } else {
-                        _controller.play();
-                        _isPlaying = true;
-                      }
-                    });
-                  },
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    IconButton(
+                      icon: Icon(
+                        _isPlaying ? Icons.pause : Icons.play_arrow,
+                        color: Colors.white,
+                        size: 32,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          if (_controller.value.isPlaying) {
+                            _controller.pause();
+                            _isPlaying = false;
+                          } else {
+                            _controller.play();
+                            _isPlaying = true;
+                          }
+                        });
+                      },
+                    ),
+                  ],
                 ),
               ],
             ),

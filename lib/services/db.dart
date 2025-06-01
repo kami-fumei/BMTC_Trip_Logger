@@ -187,18 +187,7 @@ if(field==SearchField.date)
     return maps.map((m) => Trip.fromMap(m)).toList();
   }
 
- Future<List<Trip>> getTripsByRoute(String routeName) async {
-    final db = await database;
-    final maps = await db.query(
-      tableTrips,
-      // columns: [colBusNumber, colDateTime,colId],
-      where: '$colRouteName = ?',
-      whereArgs: [routeName],
-      orderBy: '$colDateTime DESC',
-    );
-    return maps.map((m) => Trip.fromMap(m)).toList();
-  }
-
+// 
 
   /// Retrieve trips filtered by bus number
   Future<List<Trip>> getTripsById(int id) async {
@@ -231,6 +220,7 @@ if(field==SearchField.date)
       whereArgs: [id],
     );
   }
+
   Future<List<Map<String, dynamic>>> previouslyTraveled(String busNumber) async {
     final db = await database;
     final result = await db.rawQuery('''
@@ -291,6 +281,8 @@ if(field==SearchField.date)
     );
     return result.map((m)=>Trip.fromMap(m)).toList();
   }
+ 
+  /// SearchHistory
 
   Future<void> addSearchHistory(String query) async {
     final db = await database;

@@ -1,6 +1,8 @@
 // ignore: unused_import
 // import 'dart:developer';
 
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:trip_logger/search_page.dart';
@@ -31,7 +33,7 @@ class _BuslistState extends State<Buslist> {
   }
    void _loadRoutes() {
     if(widget.routeName!=null){
-  list = dbHelper.getTripsByRoute(widget.routeName!);
+  list = dbHelper.searchBusData(query:widget.routeName!,field:SearchField.route);
   title=widget.routeName!;
     }
   else  if(widget.busNumber!=null){
@@ -62,16 +64,18 @@ class _BuslistState extends State<Buslist> {
       }
 
  var buslist =snapshot.data;
-  
-  // log("$list ${snapshot.data}");
-  
+    
  return  ListView.builder(
   itemCount: buslist.length,
   itemBuilder: (context, index) {
    final item = buslist[index];
+
    var time =DateFormat('h:mma dd/MM/yy').format(DateTime.parse(item.dateTime));
+
    var c =item.busNumber.toString().toUpperCase();
+
    var clr =c.contains("AH") || c.contains("AK") ? const Color.fromARGB(255, 82, 188, 85):const Color.fromARGB(255, 187, 213, 240);
+   
   return Card(
   color: Colors.white.withOpacity(0.97),
   margin: EdgeInsets.symmetric(horizontal: 12, vertical: 8),

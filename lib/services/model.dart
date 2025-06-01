@@ -49,7 +49,7 @@ class Trip {
       noteTitle: map['note_title'],
       noteBody: map['note_body'],
       photos: map['photos']?.toString().split(','),
-      videos: map['video']?.toString().split(','),
+      videos: map['videos']?.toString().split(','),
     );
   }
 }

@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:trip_logger/widgets/image_video_open.dart';
 import 'package:trip_logger/services/db.dart';
 import 'package:trip_logger/services/model.dart';
+import 'package:video_thumbnail/video_thumbnail.dart';
 
 /// Screen to display details for a single Trip by its ID, using FutureBuilder.
 class SingleTripScreen extends StatefulWidget {
@@ -44,7 +45,7 @@ class _SingleTripScreenState extends State<SingleTripScreen> {
           }
           final trip = trips[0];
 
-          // log("${trip.photos?[0]}  ${trip.videos}");
+          log("${trip.videos!= null}  ${trip.videos}");
 
           final dateStr = DateFormat(
             'h:mma dd/MM/yy',
@@ -143,7 +144,7 @@ class _SingleTripScreenState extends State<SingleTripScreen> {
                         if (!file.existsSync()) {
                           return Container(
                             alignment: Alignment.center,
-                            child: const Text("File not found\nIt appears to be you Deleted File from the cash", style: TextStyle(color: Colors.red,fontSize: 16)),
+                            child: const Text("File not found\nIt appears to be you Deleted File from the cache", style: TextStyle(color: Colors.red,fontSize: 14)),
                           );
                         }
                         return Padding(
@@ -173,8 +174,9 @@ class _SingleTripScreenState extends State<SingleTripScreen> {
                       },
                     ),
                   ),
-                  const SizedBox(height: 16),                    
-                  if (trip.videos != null  ) ...[
+                  const SizedBox(height: 16),
+                  ],                    
+                  if (trip.videos != null) ...[
                       const Text(
                         'Videos:',
                         style: TextStyle(
@@ -183,27 +185,74 @@ class _SingleTripScreenState extends State<SingleTripScreen> {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      Column(
-                        children:
-                            trip.videos!.map((path) {
-                              return ListTile(
-                                leading: const Icon(Icons.videocam),
-                                title: Text(path.split('/').last),
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder:
-                                          (_) =>
-                                              FullVideoPlayer(videoPath: path),
+                      SizedBox(
+                        height: 100,  
+                        child: ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: trip.videos!.length,
+                          itemBuilder: (ctx, i) {
+                            final path = trip.videos![i];
+                            return FutureBuilder<String?>(
+                              future: VideoThumbnail.thumbnailFile(
+                                video: path,
+                                imageFormat: ImageFormat.PNG,
+                                maxWidth: 100,
+                                quality: 50,
+                              ),
+                              builder: (context, snapshot) {
+                                Widget thumbnail;
+                                if (snapshot.connectionState == ConnectionState.done && snapshot.hasData && snapshot.data != null) {
+                                  thumbnail = ClipRRect(
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: Image.file(
+                                      File(snapshot.data!),
+                                      width: 100,
+                                      height: 70,
+                                      fit: BoxFit.cover,
                                     ),
                                   );
-                                },
-                              );
-                            }).toList(),
+                                } else {
+                                  thumbnail = Container(
+                                    width: 100,
+                                    height: 70,
+                                    color: Colors.grey[300],
+                                    child: const Icon(Icons.videocam, color: Colors.grey),
+                                  );
+                                }
+                                return Padding(
+                                  padding: const EdgeInsets.only(right: 8.0),
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) => FullVideoPlayer(videoPath: path),
+                                        ),
+                                      );
+                                    },
+                                    child: Column(
+                                      children: [
+                                        thumbnail,
+                                        const SizedBox(height: 4),
+                                        SizedBox(
+                                          width: 100,
+                                          child: Text(
+                                            path.split('/').last,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: const TextStyle(fontSize: 12),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              },
+                            );
+                          },
+                        ),
                       ),
+                      const SizedBox(height: 16),
                     ],
-                  ],
                   ]
                 ),
               ),

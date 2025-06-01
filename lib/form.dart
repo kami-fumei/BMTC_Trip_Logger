@@ -126,7 +126,6 @@ class _AddTripFormState extends State<AddTripForm> {
     if (_formKey.currentState?.validate() ?? false) {
 
       try {
-        log("car is  ${_videos.map((vid) => vid.path).toList()}");
 
         await insertTripWithFields(
           busNumber: _busNumberController.text.trim(),
