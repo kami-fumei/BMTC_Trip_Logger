@@ -20,7 +20,7 @@ A Flutter app to log and manage bus trips with QR scanning, media notes (photos/
 
 ---
 
----
+
 
 ## 🛠️ Getting Started
 
@@ -48,7 +48,6 @@ A Flutter app to log and manage bus trips with QR scanning, media notes (photos/
    flutter run
    ```
 
----
 
 ## 📦 Dependencies
 
