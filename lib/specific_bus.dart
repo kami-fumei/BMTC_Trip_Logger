@@ -1,14 +1,12 @@
-// ignore: unused_import
 import 'dart:developer';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:trip_logger/form.dart';
 import 'package:trip_logger/widgets/image_video_open.dart';
 import 'package:trip_logger/services/db.dart';
 import 'package:trip_logger/services/model.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
-
-/// Screen to display details for a single Trip by its ID, using FutureBuilder.
 class SingleTripScreen extends StatefulWidget {
   final int id;
   const SingleTripScreen({Key? key, required this.id}) : super(key: key);
@@ -27,10 +25,46 @@ class _SingleTripScreenState extends State<SingleTripScreen> {
     _tripFuture = _dbHelper.getTripsById(widget.id);
   }
 
+  Future<void> _editTrip(Trip trip) async {
+    final updated = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => AddTripForm(trip: trip,),
+      ),
+    );
+    if (updated != null) {
+      setState(() {
+        _tripFuture = _dbHelper.getTripsById(widget.id);
+      });
+
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Trip Details'), centerTitle: true),
+      appBar: AppBar(
+        title: const Text('Trip Details'),
+        centerTitle: true,
+        actions: [
+          FutureBuilder(
+            future: _tripFuture,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.done &&
+                  snapshot.hasData &&
+                  (snapshot.data as List).isNotEmpty) {
+                final trip = (snapshot.data as List<Trip>)[0];
+                return IconButton(
+                  icon: Icon(Icons.edit, color: Colors.blueAccent),
+                  tooltip: 'Edit Trip',
+                  onPressed: () => _editTrip(trip),
+                );
+              }
+              return SizedBox.shrink();
+            },
+          ),
+        ],
+      ),
       body: FutureBuilder(
         future: _tripFuture,
         builder: (context, snapshot) {
@@ -44,8 +78,6 @@ class _SingleTripScreenState extends State<SingleTripScreen> {
             return const Center(child: Text('Trip not found'));
           }
           final trip = trips[0];
-
-          log("${trip.videos!= null}  ${trip.videos}");
 
           final dateStr = DateFormat(
             'h:mma dd/MM/yy',
@@ -191,6 +223,14 @@ class _SingleTripScreenState extends State<SingleTripScreen> {
                           scrollDirection: Axis.horizontal,
                           itemCount: trip.videos!.length,
                           itemBuilder: (ctx, i) {
+                        final file = File(trip.videos![i]);
+                             if (!file.existsSync()) {
+                          return Container(
+                            alignment: Alignment.center,
+                            child: const Text("File not found\nIt appears to be you Deleted File from the cache", style: TextStyle(color: Colors.red,fontSize: 14)),
+                          );
+                        }
+
                             final path = trip.videos![i];
                             return FutureBuilder<String?>(
                               future: VideoThumbnail.thumbnailFile(

@@ -1,5 +1,6 @@
-// import 'dart:developer';
+import 'dart:developer';
 import 'dart:io';
+import 'package:flutter/material.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
@@ -33,7 +34,6 @@ class DatabaseHelper {
   static Database? _db;
 
   Future<Database> get database async {
-
     if (_db != null) return _db!;
     _db = await _initDb();
     return _db!;
@@ -47,7 +47,7 @@ class DatabaseHelper {
       path,
       version: 3,
       onCreate: _onCreate,
-      // onUpgrade: _onUpgrade,
+      onUpgrade: _onUpgrade,
     );
   }
 
@@ -68,28 +68,19 @@ class DatabaseHelper {
          $colVideos TEXT
       )
     ''');
-        await db.execute('''
+  }
+
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+
+  if(oldVersion < 3)
+  {  await db.execute('''
       CREATE TABLE IF NOT EXISTS $tableSearchHistory (
         $colHistoryId INTEGER PRIMARY KEY AUTOINCREMENT,
         $colHistoryQuery TEXT NOT NULL,
         $colHistoryTimestamp INTEGER NOT NULL
       )
-    ''');
-  }
-
-//   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
-
-  
-//     // Create search_history table if it doesn't exist
-    // await db.execute('''
-    //   CREATE TABLE IF NOT EXISTS $tableSearchHistory (
-    //     $colHistoryId INTEGER PRIMARY KEY AUTOINCREMENT,
-    //     $colHistoryQuery TEXT NOT NULL,
-    //     $colHistoryTimestamp INTEGER NOT NULL
-    //   )
-    // ''');
-  
-// }
+    ''');}
+}
 
   // CRUD Operations
 
@@ -116,8 +107,7 @@ class DatabaseHelper {
     ''');
     return result;
   }
-/// Returns a map of unique values for each SearchField, filtered by the query.
-/// Example: {route: [23, 234M], busNumber: [KA01AB1234], date: [2024-06-01], busStop: [Majestic, Market]}
+
 Future getFilteredSearchFieldValues(
   {
     String? query,
@@ -147,11 +137,16 @@ if(field==SearchField.route||field==SearchField.all){
   );
 }
   // Filtered dates (only date part)
-if(field==SearchField.date)
-{   dates = await db.rawQuery(
-    'SELECT DISTINCT date($colDateTime) as date_only FROM $tableTrips WHERE $colDateTime LIKE ?',
-    [q],
-  );}
+if (field == SearchField.date && date != null) {
+  String dateStr = date.toIso8601String().substring(0, 10);
+  dates = await db.query(
+    tableTrips,
+    columns: [colDateTime],
+    where: 'date($colDateTime) = ?',
+    limit: 1,
+    whereArgs: [dateStr],
+  );
+}
 
   // Filtered bus stops (source and destination merged)
   if(field==SearchField.busStop||field==SearchField.all)
@@ -165,9 +160,8 @@ if(field==SearchField.date)
     [q, q],
   );
   }
-
+// log("c  c$dates");
   return {
-
   'route': routes != null? routes.map((route)=>(route['$colRouteName'])):[],
     'busNumber':busNumbers != null ?  busNumbers.map((busNumbers)=>(busNumbers['$colBusNumber'])):[],
     'date':dates != null ? dates.map((date)=>(date['$colDateTime'])):[] ,
@@ -178,6 +172,7 @@ if(field==SearchField.date)
 }
 
   /// Retrieve all trips ordered by date_time descending
+  /// 
   Future<List<Trip>> getAllTrips() async {
     final db = await database;
     final maps = await db.query(
@@ -201,13 +196,13 @@ if(field==SearchField.date)
   }
 
   /// Update an existing trip record
-  Future<int> updateTrip(Trip trip) async {
+  Future<int> updateTrip(Trip trip,  id) async {
     final db = await database;
     return await db.update(
       tableTrips,
       trip.toMap(),
       where: '$colId = ?',
-      whereArgs: [trip.id],
+      whereArgs: [id],
     );
   }
 
@@ -243,18 +238,19 @@ if(field==SearchField.date)
     final db = await database;
     String where = '';
     List<dynamic> whereArgs = [];
+    
+  if (field == SearchField.date && date != null) {
 
-    if (field == SearchField.date && date != null) {
-      // Search by date only (ignoring time)
-      String dateStr = "${date.year.toString().padLeft(4, '0')}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
-      where = "date($colDateTime) = ?";
-      whereArgs = [dateStr];
-    } else if (query != null && query.isNotEmpty) {
-      String q = '%${query.toLowerCase()}%';
+ String dateStr = date.toIso8601String().substring(0, 10);
+    where ='date($colDateTime) = ?';
+    whereArgs = [dateStr];
+}
+  else if (query != null && query.isNotEmpty) {
+      String q = query.toLowerCase();
       switch (field) {
         case SearchField.route:
-          where = "LOWER($colRouteName) LIKE ?";
-          whereArgs = [q];
+          where = "$colRouteName LIKE ?";
+          whereArgs = [query];
           break;
         case SearchField.busNumber:
           where = "LOWER($colBusNumber) LIKE ?";
@@ -279,6 +275,7 @@ if(field==SearchField.date)
       whereArgs: whereArgs.isNotEmpty ? whereArgs : null,
       orderBy: '$colDateTime DESC',
     );
+ 
     return result.map((m)=>Trip.fromMap(m)).toList();
   }
  

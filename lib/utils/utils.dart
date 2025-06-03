@@ -39,13 +39,13 @@ void showSuccessBox(BuildContext context, String msg) {
 }
 
 
- Future<bool> showDeleteBox(context) async{
+ Future<bool> showConfirmBox(context,{required String s, required String title, required String botton} ) async{
 final shouldDelete = await  showDialog<bool>(
     context: context,
     barrierDismissible: false,
     builder: (ctx) => AlertDialog(
-      title: const Text('Delete Trip'),
-      content: const Text('Are you sure you want to delete this trip?'),
+      title:  Text(title),
+      content:  Text(s),
       actions: [
         ElevatedButton(
           onPressed: () => Navigator.of(ctx).pop(false),
@@ -54,7 +54,7 @@ final shouldDelete = await  showDialog<bool>(
         ElevatedButton(
           style: ElevatedButton.styleFrom(backgroundColor: const Color.fromARGB(255, 241, 95, 84)),
           onPressed: () => Navigator.of(ctx).pop(true),
-          child: const Text('Delete',style:TextStyle(color: Colors.white) ,),
+          child:  Text(botton,style:TextStyle(color: Colors.white) ,),
         ),
       ],
     ),

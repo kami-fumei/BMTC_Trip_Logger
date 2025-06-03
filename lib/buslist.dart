@@ -1,15 +1,15 @@
-// ignore: unused_import
-// import 'dart:developer';
+
 
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:trip_logger/form.dart';
 import 'package:trip_logger/search_page.dart';
+import 'package:trip_logger/services/model.dart';
 import 'package:trip_logger/specific_bus.dart';
 import 'package:trip_logger/utils/utils.dart';
 import '../services/db.dart';
-
 
 final dbHelper = DatabaseHelper();
 
@@ -25,7 +25,8 @@ class Buslist extends StatefulWidget {
 }
 
 class _BuslistState extends State<Buslist> {
-  late var list,title;
+  late var list;
+  late var title;
   @override
   void initState() {
     super.initState();
@@ -42,7 +43,7 @@ class _BuslistState extends State<Buslist> {
     }
     if(widget.date!=null){
   list = dbHelper.searchBusData(date:widget.date!,field: SearchField.date);
-  title=widget.date!;
+  title=DateFormat("dd/MM/yy").format(widget.date!);
     }
    else if(widget.stop!=null){
   list = dbHelper.searchBusData(query:widget.stop!,field: SearchField.busStop );
@@ -127,6 +128,17 @@ class _BuslistState extends State<Buslist> {
                   ],
                 ),
                 SizedBox(height: 6),
+                 Row(
+                  children: [
+                    Icon(Icons.alt_route, size: 18, color: const Color.fromARGB(255, 163, 175, 243)),
+                    SizedBox(width: 4),
+                    Text(
+                      "${item.routeName}",
+                      style: TextStyle(fontSize: 15, color: Colors.grey[800]),
+                    ),
+                  ],
+                ),// 
+                SizedBox(height: 6),
                 Row(
                   children: [
                     Icon(Icons.access_time, size: 18, color: Colors.grey[600]),
@@ -164,8 +176,23 @@ class _BuslistState extends State<Buslist> {
         ),
         PopupMenuButton<String>(
           onSelected: (value) async {
-            if (value == 'delete') {
-              final x = await showDeleteBox(context);
+            if (value == 'edit') {
+              // Navigate to EditTripPage and refresh on return
+              final updated = await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => AddTripForm(trip: item),
+                ),
+              );
+              if (updated != null) {
+                setState(() {
+                  _loadRoutes();
+                });
+                showSuccessBox(context, "Trip updated");
+              }
+            } else if (value == 'delete') {
+              final x = await showConfirmBox(context,s:'Are you sure you want to delete this trip?',
+              botton: 'Delete',title: 'Are you sure you want to delete');
               if (x) {
                 await dbHelper.deleteTrip(item.id);
                 setState(() {
@@ -176,6 +203,16 @@ class _BuslistState extends State<Buslist> {
             }
           },
           itemBuilder: (context) => [
+            PopupMenuItem(
+              value: 'edit',
+              child: Row(
+                children: [
+                  Icon(Icons.edit, color: Colors.blueAccent),
+                  SizedBox(width: 8),
+                  Text('Edit'),
+                ],
+              ),
+            ),
             PopupMenuItem(
               value: 'delete',
               child: Row(

@@ -3,13 +3,15 @@ import 'dart:developer';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:trip_logger/services/model.dart';
 import 'package:trip_logger/utils/utils.dart';
 import 'utils/helperdb.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
 
 class AddTripForm extends StatefulWidget {
   final String? busno;
-  AddTripForm({super.key, this.busno});
+  final Trip? trip;
+  AddTripForm({super.key, this.busno,this.trip});
 
   @override
   _AddTripFormState createState() => _AddTripFormState();
@@ -35,6 +37,21 @@ class _AddTripFormState extends State<AddTripForm> {
     super.initState();
     if (widget.busno != null) {
       _busNumberController.text = widget.busno!;
+    }
+    if(widget.trip!=null){
+          _busNumberController.text = widget.trip!.busNumber;
+    _routeNameController.text  =widget.trip!.routeName!;
+    _sourceController.text =widget.trip!.source?? '';
+    _destinationController.text =widget.trip!.destination ?? '';
+    _noteTitleController.text =widget.trip!.noteTitle ?? '';
+    _noteBodyController.text =widget.trip!.noteBody ?? '';
+    _selectedDateTime = DateTime.parse(widget.trip!.dateTime);
+    _videos = (widget.trip?.videos != null)
+        ? (widget.trip!.videos as List).map((e) => e is XFile ? e : XFile(e.toString())).toList()
+        : [];
+  _images =(widget.trip?.photos != null)
+        ? (widget.trip!.photos as List).map((e) => e is XFile ? e : XFile(e.toString())).toList()
+        : [];
     }
   }
 
@@ -124,9 +141,10 @@ class _AddTripFormState extends State<AddTripForm> {
 
   void _handleSubmit() async {
     if (_formKey.currentState?.validate() ?? false) {
-
-      try {
-
+      var busno = _busNumberController.text.trim();
+      if(widget.trip==null) { 
+         try {
+        
         await insertTripWithFields(
           busNumber: _busNumberController.text.trim(),
           source: _sourceController.text.trim(),
@@ -138,21 +156,41 @@ class _AddTripFormState extends State<AddTripForm> {
           photos: _images.isNotEmpty? _images.map((img) => img.path).toList():null,
           videos: _videos.isNotEmpty? _videos.map((vid) => vid.path).toList():null,
         );
-
-        var busno = _busNumberController.text.trim();
         Navigator.pop(context, busno);
 
-        showSuccessBox(context,"Successfully added ");
+        showSuccessBox(context,"added $busno");
       } catch (e) {
         dialogBox(context, "Failed", Colors.red, "$e");
       }
+    }
+    else{
+      bool cn = await showConfirmBox(context,botton:'Update',title: 
+        'Trip Update',s: 'Are you sure you want to Update this trip?' );
+     if(cn)   {
+        Trip updatedTrip = Trip(
+        id: widget.trip!.id!,
+       busNumber: _busNumberController.text.trim(),
+          source: _sourceController.text.trim(),
+          routeName: _routeNameController.text.trim(),
+          destination: _destinationController.text.trim(),
+          dateTime: _selectedDateTime.toIso8601String(),
+          noteTitle: _noteTitleController.text.trim(),
+          noteBody: _noteBodyController.text.trim(),
+          photos: _images.isNotEmpty? _images.map((img) => img.path).toList():null,
+          videos: _videos.isNotEmpty? _videos.map((vid) => vid.path).toList():null,
+      );
+     await dbHelper.updateTrip(updatedTrip,widget.trip!.id!);
+      if (mounted) Navigator.pop(context, updatedTrip);
+        showSuccessBox(context," Updated $busno Trip" );
+}
+    }
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Add Trip')),
+      appBar: AppBar(title:  Text( widget.trip !=null ? "Update Trips ":'Add Trip')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(18.0),
         child: Form(

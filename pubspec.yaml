@@ -43,6 +43,7 @@ dependencies:
   video_player: ^2.9.5
   video_thumbnail: ^0.5.3
   open_filex: ^4.3.2
+  fl_chart: ^0.66.2
 
 dev_dependencies:
   flutter_launcher_icons: ^0.14.3

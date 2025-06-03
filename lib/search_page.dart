@@ -398,47 +398,47 @@ class _SearchPageState extends State<SearchPage> {
                         }
 
                         // Dates Section
-                        // if (_selectedField == SearchField.date &&
-                        //     data['date'].isNotEmpty) {
-                        //   sections.add(
-                        //     sectionHeader('Dates', Icons.calendar_today),
-                        //   );
+                        if (_selectedField == SearchField.date &&
+                            data['date'].isNotEmpty) {
+                          sections.add(
+                            sectionHeader('Dates', Icons.calendar_today),
+                          );
 
-                        //   data['date'].forEach((date) {
-                        //     sections.add(
-                        //       GestureDetector(
-                        //         onTap:
-                        //             () => Navigator.push(
-                        //               context,
-                        //               MaterialPageRoute(
-                        //                 builder:
-                        //                     (_) => Buslist(
-                        //                       date: DateTime.parse(date),
-                        //                     ),
-                        //               ),
-                        //             ),
-                        //         child: Card(
-                        //           margin: const EdgeInsets.symmetric(
-                        //             horizontal: 12,
-                        //             vertical: 4,
-                        //           ),
-                        //           child: ListTile(
-                        //             leading: Icon(
-                        //               Icons.event,
-                        //               color: Colors.deepPurple,
-                        //             ),
-                        //             title: Text(
-                        //               date.toString(),
-                        //               style: TextStyle(
-                        //                 fontWeight: FontWeight.bold,
-                        //               ),
-                        //             ),
-                        //           ),
-                        //         ),
-                        //       ),
-                        //     );
-                        //   });
-                        // }
+                          data['date'].forEach((date) {
+                            sections.add(
+                              GestureDetector(
+                                onTap:
+                                    () => Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder:
+                                            (_) => Buslist(
+                                              date: DateTime.parse(date),
+                                            ),
+                                      ),
+                                    ),
+                                child: Card(
+                                  margin: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 4,
+                                  ),
+                                  child: ListTile(
+                                    leading: Icon(
+                                      Icons.event,
+                                      color: Colors.deepPurple,
+                                    ),
+                                    title: Text(
+                                    DateFormat("dd/MM/yy").format( DateTime.parse(date.toString())),
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
+                          });
+                        }
 
                         // Bus Stops Section
                         if ((_selectedField == SearchField.busStop ||
