@@ -1,6 +1,7 @@
 
 // ignore_for_file: unused_import
 import 'dart:developer';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
@@ -46,7 +47,7 @@ class _QRView extends State<QRview> {
               if (result == null && barcode.rawValue != null) {
                 final code = barcode.rawValue!;
                 result = code;
-                final res = extractBusFromUPI(code);
+                final res = extractBusNumber(code);
                 log("$res");
                 Navigator.of(context).pop(res);
               }
@@ -108,10 +109,28 @@ class _QRView extends State<QRview> {
     );
   }
 
-  String extractBusFromUPI(String upiLink) {
-    final uri = Uri.tryParse(upiLink);
+  // String extractBusFromUPI(String upiLink) {
+
+  // }
+
+  String? extractBusNumber(String url) {
+
+    final uri = Uri.tryParse(url);
     final pa = uri?.queryParameters['pa'];
-    if (pa == null) return '';
+    if (pa != null){
     return pa.split('@').first.toUpperCase();
-  }
+    }
+
+  // final qrParam = uri?.queryParameters['tummoc_qr'];
+
+  // if (qrParam != null) {
+  //   // Match pattern like KA57F0420
+  //    final regex = RegExp(r'\b[a-zA-Z]{2}\d{1,2}[a-zA-Z]{0,2}\d{4}\b', caseSensitive: false);
+  //   final match = regex.firstMatch(qrParam);
+  //   if (match != null) {
+  //     return match.group(0)?.toLowerCase();
+  //   }
+  // }
+  return null;
+}
 }
