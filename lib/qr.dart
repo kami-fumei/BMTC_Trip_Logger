@@ -130,7 +130,7 @@ class _QRView extends State<QRview> {
   //   if (match != null) {
   //     return match.group(0)?.toLowerCase();
   //   }
-  // }
+  //  } 
   return null;
 }
 }
